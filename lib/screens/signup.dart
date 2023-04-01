@@ -1,14 +1,20 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:neww/screens/signin.dart';
 import '../colors.dart';
 import '../reusable_widgets/reusable.dart';
 import 'home.dart';
+import '../roles.dart';
+
 
 var currentSelected = "Farmer";
 var role = "Farmer";
 
 var items = ["Farmer", "Individual", "Organization"];
+
+final _auth = FirebaseAuth.instance;
 
 class signUp extends StatefulWidget {
   const signUp({super.key});
@@ -22,6 +28,7 @@ class _signUpState extends State<signUp> {
   final TextEditingController _passwordTextController = TextEditingController();
   final TextEditingController _rePasswordTextController = TextEditingController();
   final TextEditingController _usernameTextController = TextEditingController();
+  final TextEditingController _phoneNumberTextController = TextEditingController();
 
   
 
@@ -41,27 +48,16 @@ class _signUpState extends State<signUp> {
         height: MediaQuery.of(context).size.height,
         decoration: BoxDecoration(
             gradient: LinearGradient(colors: [
-          /*hexStringToColor("1CAC78"),
-            hexStringToColor("018749"),
-            hexStringToColor("006400"),*/
-
-          //hexStringToColor("#8cc751"),
+          
             hexStringToColor("#50C878"),
             hexStringToColor("#50C878"),
             hexStringToColor("#1CAC78"),
         ], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
-        /*child: DropdownButton(
-          value: dropdownvalue,
-          onChanged: (newvalue) {
-            setState((){
-              dropdownvalue = newvalue;
-            });
-          },
-        ),*/
+       
         child: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.fromLTRB(
-                10, MediaQuery.of(context).size.height * 0.1, 20, 0),
+                0, MediaQuery.of(context).size.height * 0.05, 20, 0),
             child: Column(children: <Widget>[
               logoWidget("assets/images/farmnow.png"),
               const SizedBox(
@@ -74,7 +70,7 @@ class _signUpState extends State<signUp> {
               ),
               //const Spacer(),
 
-              reusableTextField("Enter Username", Icons.person_2_outlined,
+              reusableTextField("Enter Name", Icons.person_2_outlined,
                   false, _usernameTextController),
               const SizedBox(
                 height: 20,
@@ -95,6 +91,13 @@ class _signUpState extends State<signUp> {
 
               reusableTextField("Re-Enter Password", Icons.lock_outline, true,
                   _rePasswordTextController),
+
+              const SizedBox(
+                height: 20,
+              ),
+
+              reusableTextField("Enter Mobile Number", Icons.mobile_friendly_rounded, true,
+                  _phoneNumberTextController),
 
               const SizedBox(
                 height: 20,
@@ -142,10 +145,9 @@ class _signUpState extends State<signUp> {
                           ],
                         ),
 
-              //dropButton(),  
               const SizedBox(height: 20,),
               pageButton(context, false, (){
-                FirebaseAuth.instance.createUserWithEmailAndPassword(
+                /*FirebaseAuth.instance.createUserWithEmailAndPassword(
                   email: _emailTextController.text, password: _passwordTextController.text
                   ).then((value) {
                     print("USER CREATED!!!!!!!!!!!!!");
@@ -156,7 +158,11 @@ class _signUpState extends State<signUp> {
                 );
                   }).onError((error, stackTrace) {
                     print("ERRORRRR - ${error.toString()}");
-                  });
+                  });*/
+                  signUp(_emailTextController.text, _passwordTextController.text, role,_usernameTextController.text,
+                  _phoneNumberTextController.text);
+
+                  
 
                 
               }),          
@@ -198,5 +204,32 @@ class _signUpState extends State<signUp> {
   }
 
 
+  void signUp(String email, String password, String role, String name, String phNo) async {
+    const CircularProgressIndicator();
+      await _auth.createUserWithEmailAndPassword(
+        email: _emailTextController.text, password: _passwordTextController.text)
+          .then((value) => {postDetailsToFirestore(email, role, name, phNo)})
+          // ignore: body_might_complete_normally_catch_error
+          .catchError((e) {});
+    
+  }
+
+  postDetailsToFirestore(String email, String role, String name, String phNo) async {
+    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+    User? user = _auth.currentUser;
+    UserRole userRole = UserRole();
+    userRole.uid = user!.uid;
+    userRole.email = email;
+    userRole.role = role;
+    userRole.name = name;
+    userRole.phNo = phNo;
+    await firebaseFirestore  
+        .collection("users")
+        .doc(user.uid)
+        .set(userRole.toMap());
+
+    Navigator.pushReplacement(
+        context, MaterialPageRoute(builder: (context) =>const SignIn(title: "Login",)));
+  }
 
 }

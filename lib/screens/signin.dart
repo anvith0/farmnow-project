@@ -1,9 +1,15 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:neww/screens/signup.dart';
 
 
 import '../colors.dart';
 import '../reusable_widgets/reusable.dart';
+import 'home.dart';
+
+
+bool visible = false;
+
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key, required String title});
@@ -16,6 +22,7 @@ class _SignInState extends State<SignIn> {
   final TextEditingController _emailTextController = TextEditingController();
   final TextEditingController _passwordTextController = TextEditingController();
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
@@ -47,7 +54,7 @@ class _SignInState extends State<SignIn> {
                   height: 20,
                 ),
                 
-                reusableTextField("Enter Username", Icons.person_2_outlined, false, _emailTextController),
+                reusableTextField("Enter e-mail", Icons.person_2_outlined, false, _emailTextController),
                 const SizedBox(
                   height: 20,
                 ),
@@ -57,7 +64,13 @@ class _SignInState extends State<SignIn> {
                   height: 20,
                 ),
                 
-                pageButton(context, true, (){}),
+                pageButton(context, true, (){
+                  setState(() {
+                    visible = true;
+                  });
+                signIn(_emailTextController.text, _passwordTextController.text);
+
+                }),
                 signUpOption()
               ],
             )  
@@ -77,7 +90,7 @@ class _SignInState extends State<SignIn> {
         GestureDetector(
           onTap:() {
             Navigator.push(context, 
-              MaterialPageRoute(builder: (context) => signUp()));
+              MaterialPageRoute(builder: (context) => const signUp()));
           },
           child: const Text(
             " Sign Up",
@@ -87,5 +100,38 @@ class _SignInState extends State<SignIn> {
       ],
     );
   }
-  
+
+  void signIn(String email, String password) async{
+    
+    try {
+      final userCredential = await
+        FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: email, password: password
+          );
+        if(userCredential != null) {
+          print("SUCCESS");
+        }
+        else {
+          print("FAILUREEE");
+        }
+          Navigator.pushReplacement(
+            context, 
+            MaterialPageRoute(
+              builder: (context) => HomeScreen(),
+              ),
+            );
+            
+    } on FirebaseAuthException catch (e) {
+      if(e.code == "user-not-found") {
+        print("No user found for the email");
+      }
+      else if(e.code == 'wrong-password') {
+        print('Wrong password!');
+      }
+    }
+    
+  }
 }
+
+  
+

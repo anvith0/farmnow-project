@@ -1,7 +1,7 @@
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:neww/screens/signin.dart';
+import 'package:neww/users/farmer.dart';
 
 
 void main() async{
@@ -18,10 +18,9 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-     
-      
+    return MaterialApp(
       home: SignIn(title: 'Flutter Demo Home Page'),
+      //home: Farmer(id: "f"),
     );
   }
 }

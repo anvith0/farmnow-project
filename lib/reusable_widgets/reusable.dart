@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+
 Image logoWidget(String imageName) {
   return Image.asset(
     imageName,
@@ -71,4 +72,7 @@ Container pageButton(BuildContext context, bool isLogin, Function onTap) {
         ),
     ),
   );
+
+
+  
 }
